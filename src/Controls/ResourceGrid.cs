@@ -228,7 +228,7 @@ namespace ResxTranslator.Controls
                             c.DisplayIndex >= dataGridView1.Columns[currentCell.ColumnIndex].DisplayIndex);
 
             var rowData = Regex.Split(
-                dataObject.GetData(DataFormats.UnicodeText).ToString().TrimEnd(Environment.NewLine.ToCharArray()), Environment.NewLine);
+                dataObject.GetData(DataFormats.UnicodeText).ToString().TrimEnd(Environment.NewLine.ToCharArray()), "\r\n|\n" );
 
             var data = rowData.Select(r => r.Split('\t')).ToArray();
 
