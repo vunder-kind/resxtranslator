@@ -270,7 +270,7 @@ namespace ResxTranslator.ResourceOperations
                 return;
             try
             {
-                UpdateFile(Filename, Properties.Resources.ColNameNoLang, false, true);
+                //UpdateFile(Filename, Properties.Resources.ColNameNoLang, false, true);
 
                 foreach (var languageHolder in Languages.Values)
                 {
@@ -353,7 +353,7 @@ namespace ResxTranslator.ResourceOperations
         /// </summary>
         private static bool IsLocalizableString(string key, ResXDataNode dataNode)
         {
-            if (key.StartsWith(">>") || (key.StartsWith("$") && key != "$this.Text"))
+            if  (key.StartsWith("&gt;&gt;") || key.StartsWith(">>") || (key.StartsWith("$") && key != "$this.Text"))
                 return false;
 
             if (dataNode == null)
@@ -671,7 +671,7 @@ namespace ResxTranslator.ResourceOperations
 
         public List<string> GetTextForTranslating(TranslateAPIConfig translateApiConfig)
         {
-            string sl = translateApiConfig.SourceLanguage == translateApiConfig.DefaultLanguage ? Properties.Resources.ColNameNoLang : translateApiConfig.SourceLanguage;
+            string sl = translateApiConfig.SourceLanguage;
             var result = new List<string>();
             IEnumerable<DataRow> rows = _stringsTable.Rows.Cast<DataRow>();
 
@@ -702,6 +702,26 @@ namespace ResxTranslator.ResourceOperations
 
             foreach (TranslationResult translationResult in translationResults)
             {
+                string translatedText = translationResult.TranslatedText;
+
+               
+                //Capitalize
+                if (IsFirstLetterCapitalized(translationResult.OriginalText))
+                {
+                    translatedText = CapitalizeFirstLetter(translatedText);
+                }
+
+                // Проверка на служебные элементы - их не нужно переводить
+                if (translationResult.OriginalText == "u")
+                {
+                    translatedText = "u";
+                }
+
+                if (translationResult.OriginalText == "T")
+                {
+                    translatedText = "T";
+                }
+
                 string sl = translationResult.SpecifiedSourceLanguage == translateApiConfig.DefaultLanguage ? Properties.Resources.ColNameNoLang : translationResult.SpecifiedSourceLanguage;
 
                 foreach (DataRow row in rows)
@@ -710,10 +730,34 @@ namespace ResxTranslator.ResourceOperations
 
                     if (sourceText == translationResult.OriginalText)
                     {
-                        row[translateApiConfig.TargetLanguage] = translationResult.TranslatedText;
+                        row[translateApiConfig.TargetLanguage] = translatedText;
                     }
                 }
             }
+        }
+
+        static string CapitalizeFirstLetter(string input)
+        {
+            // Проверка на пустую строку
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            // Преобразование первого символа в верхний регистр и объединение с остальной частью строки
+            return char.ToUpper(input[0]) + input.Substring(1);
+        }
+
+        static bool IsFirstLetterCapitalized(string input)
+        {
+            // Проверка на пустую строку
+            if (string.IsNullOrEmpty(input))
+            {
+                return false;
+            }
+
+            // Проверка, является ли первый символ заглавным
+            return char.IsUpper(input[0]);
         }
     }
 }

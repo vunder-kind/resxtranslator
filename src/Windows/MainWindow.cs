@@ -13,6 +13,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ResxTranslator.Windows
@@ -671,7 +672,7 @@ namespace ResxTranslator.Windows
 
             try
             {
-                using TranslationClient client = await TranslationClient.CreateAsync();
+                using TranslationClient client = TranslationClient.CreateFromApiKey("AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw", TranslationModel.NeuralMachineTranslation);
 
                 if (_googleLanguages == null)
                 {
@@ -713,7 +714,36 @@ namespace ResxTranslator.Windows
                 string targetLanguage = tad.TranslateAPIConfig.TargetLanguage == Properties.Resources.ColNameNoLang ? tad.TranslateAPIConfig.DefaultLanguage : tad.TranslateAPIConfig.TargetLanguage;
                 string sourceLanguage = tad.TranslateAPIConfig.SourceLanguage == Properties.Resources.ColNameNoLang ? tad.TranslateAPIConfig.DefaultLanguage : tad.TranslateAPIConfig.SourceLanguage;
 
-                IList<TranslationResult> result = await client.TranslateTextAsync(textToTranslate, targetLanguage, sourceLanguage);
+                // Do batches
+                List<TranslationResult> result = new List<TranslationResult>();
+
+                var count = 0;
+                List<string> batchText = new List<string>();
+                try
+                {
+                    foreach (string text in textToTranslate)
+                    {
+                        batchText.Add(text);
+                        count++;
+                        if (count == 50)
+                        {
+                            var batchResult = await client.TranslateTextAsync(batchText, targetLanguage, sourceLanguage);
+                            result.AddRange(batchResult);
+                            batchText.Clear();
+                            count = 0;
+                            Thread.Sleep(5000);
+                        }
+                    }
+                    var lastBatchResult = await client.TranslateTextAsync(batchText, targetLanguage, sourceLanguage);
+                    result.AddRange(lastBatchResult);
+                } catch (Exception ex)
+                {
+
+                }
+
+
+                //IList<TranslationResult> result = await client.TranslateTextAsync(textToTranslate, targetLanguage, sourceLanguage);
+
                 CurrentResource.SetTranslatedText(tad.TranslateAPIConfig, result);
             }
             catch (Exception exception)
@@ -725,5 +755,8 @@ namespace ResxTranslator.Windows
                 Cursor.Current = Cursors.Default;
             }
         }
+
+
+        
     }
 }
