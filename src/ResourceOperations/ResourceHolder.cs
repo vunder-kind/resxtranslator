@@ -270,7 +270,7 @@ namespace ResxTranslator.ResourceOperations
                 return;
             try
             {
-                //UpdateFile(Filename, Properties.Resources.ColNameNoLang, false, true);
+                UpdateFile(Filename, Properties.Resources.ColNameNoLang, false, true);
 
                 foreach (var languageHolder in Languages.Values)
                 {
