@@ -672,6 +672,10 @@ namespace ResxTranslator.Windows
 
             try
             {
+
+                //AIzaSyATBXajvzQLTDHEQbcpq0Ihe0vWDHmO520
+                //AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw
+                //AIzaSyBWDj0QJvVIx8XOhRegXX5_SrRWxhT5Hs4
                 using TranslationClient client = TranslationClient.CreateFromApiKey("AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw", TranslationModel.NeuralMachineTranslation);
 
                 if (_googleLanguages == null)
@@ -723,6 +727,7 @@ namespace ResxTranslator.Windows
                 {
                     foreach (string text in textToTranslate)
                     {
+                        
                         batchText.Add(text);
                         count++;
                         if (count == 50)
@@ -734,11 +739,12 @@ namespace ResxTranslator.Windows
                             Thread.Sleep(5000);
                         }
                     }
+                    Thread.Sleep(5000);
                     var lastBatchResult = await client.TranslateTextAsync(batchText, targetLanguage, sourceLanguage);
                     result.AddRange(lastBatchResult);
                 } catch (Exception ex)
                 {
-
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
 

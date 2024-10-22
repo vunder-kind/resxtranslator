@@ -11,6 +11,7 @@ using ResxTranslator.Properties;
 using ResxTranslator.Resources;
 using ResxTranslator.Tools;
 using ResxTranslator.Windows;
+using System.Text.RegularExpressions;
 
 namespace ResxTranslator.ResourceOperations
 {
@@ -406,18 +407,31 @@ namespace ResxTranslator.ResourceOperations
 
         private static bool RowContainsTranslation(DataRow row, string languageId)
         {
+            // ≈сли исходный - это null, то пропускаем
+            if (row[Properties.Resources.ColNameNoLang] == DBNull.Value)
+                return true;
+
+
+            var defaultValue = ((string)row[Properties.Resources.ColNameNoLang]).Trim();
+
             if (Settings.Default.TranslatableInBrackets)
-            {
-                var defaultValue = ((string)row[Properties.Resources.ColNameNoLang]).Trim();
+            {      
                 if (!defaultValue.StartsWith("[", StringComparison.InvariantCultureIgnoreCase) ||
                     !defaultValue.EndsWith("]", StringComparison.InvariantCultureIgnoreCase))
                     return true;
             }
 
+            // –егул€рное выражение дл€ проверки наличи€ русских букв (кириллица)
+            Regex russianRegex = new Regex("[а-€ј-я]");
+            // ƒополнительно провер€ем, что исходный текст на русском содержит русские буквы
+            if (!russianRegex.IsMatch(defaultValue))
+                return true;
+
             if (row[languageId] == DBNull.Value)
                 return false;
 
             var value = (string)row[languageId];
+                   
             return !string.IsNullOrWhiteSpace(value) && !(value.StartsWith("[") && value.TrimEnd().EndsWith("]"));
         }
 
